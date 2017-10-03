@@ -1,6 +1,5 @@
-
 mywd=getwd()
-# Install and load packages-------------------------- 
+# Install and load packages--------------------------
 list_packages=c("pixmap",
                 "rgdal",
                 "jpeg",
@@ -28,21 +27,3 @@ mypink=rgb(255/255,160/255,160/255)
 mypalette=colorRampPalette(c(mypink, myyellow, myblue),
                            space = "rgb")
 palette(mypalette(5))
-
-
-
-source("scripts/0_scr_Functions.R")
-
-# ### Data file selection #########################################
-# source("scripts/1_int_File.R")
-# ### User input ##############################
-# source("scripts/2_int_Input.R")
-# ### Description of sub-sample characteristics ####################
-# source("scripts/3_int_Description.R")
-# ### Co-inertia analysis of sub-sample ############################
-# source("scripts/4_int_Analysis.R")
-# ### Classification of sub-sample into 1000 cluters ###############
-# source("scripts/5_int_Classification.R")
-# ### Extrapolation into final number of clusters  #################
-# source("scripts/6_int_Extrapolation.R")
-

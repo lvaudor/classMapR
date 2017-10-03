@@ -1,9 +1,9 @@
 #
-# This is the server logic of a Shiny web application. You can run the 
+# This is the server logic of a Shiny web application. You can run the
 # application by clicking 'Run App' above.
 #
 # Find out more about building applications with Shiny here:
-# 
+#
 #    http://shiny.rstudio.com/
 #
 
@@ -14,11 +14,30 @@ library(raster)
 
 # Define server logic required to draw a histogram
 shinyServer(function(input,output,session) {
-  source("scripts/3_server_Description.R",local=TRUE)
-  source("scripts/4_scr_Analysis.R",local=TRUE)
-  source("scripts/5_scr_Classification.R",local=TRUE)
-  source("scripts/dist_between_datasets.R", local=TRUE)
-  shinyDirChoose(input, 'dir', roots = c(home = getwd()), filetypes = c('', 'txt'))
+  source("scripts/data_description.R",local=TRUE)
+  source("scripts/final_classification.R",local=TRUE)
+  shinyDirChoose(input, 'dir', roots = c(home = path.expand('~')), filetypes = c('', 'txt'))
+
+
+
+  # A coinertia analysis is realized on the results of the PCA and correspondence analysis
+  rCoin=reactive({
+    mypca=PCA(rDataQuanti())
+    mymca=MCA(rDataCat())
+    mycoin<-coinertia(mypca,mymca,
+                      scan=FALSE,
+                      nf=min(ncol(mypca$li),ncol(mymca$li)))
+    return(mycoin)
+  })
+
+
+  output$imPCA=renderPlot({scatter(PCA(rDataQuanti()))})
+  output$imMCA=renderPlot({
+    scatter(MCA(rDataCat()))
+  })
+  output$imCoin=renderPlot({scatter(rCoin())})
+
+
 
   output$filesUI=renderUI({
     input$dir
@@ -40,7 +59,7 @@ shinyServer(function(input,output,session) {
           }
           listItems[[i]]=fluidRow(column(width=4,h4(myvars[i])),
                                   column(width=4,typeWidget),
-                                  column(width=4,        
+                                  column(width=4,
                                          sliderInput(paste0("varWeight",i),
                                                       "weight",
                                                       value=defaultWeight,
@@ -51,12 +70,12 @@ shinyServer(function(input,output,session) {
         result=do.call("wellPanel",listItems)
     }
   })
-  
-  
-  rParams=reactiveFileReader(1000,session,"data\\params.csv","read.csv",sep=";", stringsAsFactors=FALSE) 
+
+
+  rParams=reactiveFileReader(1000,session,"../data/params.csv","read.csv",sep=";", stringsAsFactors=FALSE)
 
   observeEvent(input$dir,{
-    mydir=paste0(input$dir$path[2:length(input$dir$path)], collapse="\\")
+    mydir=paste0(c(path.expand('~'),input$dir$path[2:length(input$dir$path)]), collapse="/")
     myfiles=list.files(mydir)
     myfiles=myfiles[str_detect(myfiles,"\\.asc$")]
     myvars=str_match(myfiles,"(.*)(\\.asc$)")[,2]
@@ -64,14 +83,14 @@ shinyServer(function(input,output,session) {
                        var=myvars)
     write.table(myfiles,"files.csv",sep=";", row.names=FALSE,col.names=FALSE)
   })
-  
-  rFilesRead=reactiveFileReader(1000,session,"files.csv","read.csv", sep=";", stringsAsFactors=FALSE, header=FALSE) 
+
+  rFilesRead=reactiveFileReader(1000,session,"files.csv","read.csv", sep=";", stringsAsFactors=FALSE, header=FALSE)
   rFiles=reactive({rFilesRead()[,1]})
   rVars=reactive({rFilesRead()[,2]})
 
-  
+
   observeEvent(input$readFiles,{
-    resultsFile=input$resultsFile
+    resultsFile=str_c(path.expand('~'),"/",input$resultsFile)
     myfiles=rFiles()
     myvars=rVars()
     myvars=c("x","y",myvars)
@@ -87,7 +106,7 @@ shinyServer(function(input,output,session) {
     if(!file.exists(file1)){dir.create(file1)}
     if(!file.exists(file2)){dir.create(file2)}
     ### Create params.csv
-    rootPath=paste0(input$dir$path[2:length(input$dir$path)], collapse="\\")
+    rootPath=paste0(input$dir$path[2:length(input$dir$path)], collapse="/")
     params=data.frame(myvars,
                       dataType,
                       dataWeight,
@@ -98,16 +117,17 @@ shinyServer(function(input,output,session) {
                       resultPath=rep(input$resultsFile,length(myvars)),
                       dataSd=rep(NA,length(myvars)))
     write.table(params,
-                "data\\params.csv",
+                "../data/params.csv",
                 row.names=FALSE,sep=";")
     ################################
-    file.remove(str_c(resultsFile,"/data/cat_levels.asc"))
+    cat_levels_file=str_c(resultsFile,"/data/cat_levels.asc")
+    if(file.exists(cat_levels_file)){file.remove(cat_levels_file)}
     file.create(str_c(resultsFile,"/data/cat_levels.asc"))
     for (j in 3:nvars){
       if(dataType[j]=="quanti"){mymode="double"}
       if(dataType[j]=="cat"){mymode="integer"}
       var=ff(0L,vmode=mymode,length=mynrow*myncol)
-      var[]=raster(myfiles[j-2])[]  
+      var[]=raster(myfiles[j-2])[]
       if(dataType[j]=="cat"){
         mylevels=sort(unique(var[]))
       }else{mylevels=""}
@@ -123,13 +143,13 @@ shinyServer(function(input,output,session) {
     ind_completerow<<-which(completerow[]==1)
     data1<-alldata[ind_completerow[],]
     ind<-round(seq(from=1,
-                   to=nrow(data1), 
+                   to=nrow(data1),
                    length.out=min(input$nInd,nrow(data1))))
     mydata=data1[ind,]
     colnames(mydata)<- myvars
     mydatacat       <- mydata[,which(dataType=="cat")]
     mydataquanti    <- mydata[,which(dataType!="cat")]
-    
+
     for (i in 1:length(myvars)){
       x=mydata[,i]
       type=dataType[i]
@@ -140,7 +160,7 @@ shinyServer(function(input,output,session) {
       params$dataSd[i]=sd(Mdist)
     }
     write.table(params,
-                "data\\params.csv",
+                str_c(resultsFile,"/data/params.csv"),
                 row.names=FALSE,sep=";")
     write.table(mydata,
                 str_c(resultsFile,"/data/mydata.csv"),
@@ -155,7 +175,7 @@ shinyServer(function(input,output,session) {
                 sep=";",
                 row.names=F)
   })
-  
+
   rAlldata=reactive({
     params=rParams()
     myvars=params$myvars
@@ -170,20 +190,20 @@ shinyServer(function(input,output,session) {
     alldata[,1]=var1[]
     var2=ff(0L,vmode="double",length=n)
     var2[]=mygrid[,2]
-    alldata[,2]=var2[]       
+    alldata[,2]=var2[]
     completerow<<-ff(1L,length=n)
     for (j in 3:length(myvars)){
       if(dataType[j]=="quanti"){mymode="double"}
       if(dataType[j]=="cat"){mymode="integer"}
       var=ff(0L,vmode=mymode,length=nr*nc)
-      var[]=raster(params$path[j])[]  
+      var[]=raster(params$path[j])[]
       alldata[,j]=var[]
       completerow[which(is.na(var[]))]<-0
     }
     result=list(alldata=alldata,completerow=completerow)
     return(result)
   })
-  
+
 output$numMap=renderUI({
   params=rParams()
   radioButtons("numMap","variable",params$myvars[3:nrow(params)])
@@ -200,8 +220,6 @@ output$map=renderPlot({
 observeEvent(input$calculate_distances,{
   data2=rData()
   alldata=rAlldata()
-  print(alldata$alldata)
-  print(alldata$completerow==1)
   data1=alldata$alldata[alldata$completerow[]==1,]
   print(data1)
   params=rParams()
@@ -209,7 +227,7 @@ observeEvent(input$calculate_distances,{
   write.csv.ffdf(as.ffdf(mydist),file=paste0(input$resultsFile,"//data//dist.csv"), append=FALSE)
   mytree=rTree()
   # Mclust is a matrix with n lines (individuals in the subsample data2)
-  # and as many columns as there are merges in the classification tree 
+  # and as many columns as there are merges in the classification tree
   Mclust=matrix(rep(0,nrow(data2)*nrow(mytree$merge)),nrow=nrow(data2))
   for (i in 1:nrow(data2)){
     clusts=get_clusters_containing_individual(mytree,i)
@@ -242,7 +260,7 @@ observeEvent(input$extrapolate_to_nclust,{
   dist=read.csv.ffdf(file=paste0(input$resultsFile,"//data//dist.csv"))
   dist=ffbase:::as.ff_matrix.ffdf(dist)
   f=function(dist){
-    return(dataclust[dist[,2]])  
+    return(dataclust[dist[,2]])
   }
   resulttmp=ffrowapply(f(dist[i1:i2,]),
                        X=dist,
@@ -258,8 +276,8 @@ observeEvent(input$extrapolate_to_nclust,{
   ####
   result[ind_completerow]=resulttmp[,1]
   ### Write .asc file containing classification results
-  
-  result_classif_file=paste(input$resultsFile,"\\data\\result_",
+
+  result_classif_file=paste(input$resultsFile,"/data/result_",
                             nclust,"classes",
                             ".asc", sep="")
   if(file.exists(result_classif_file)){file.remove(result_classif_file)}
@@ -274,7 +292,7 @@ observeEvent(input$extrapolate_to_nclust,{
 })
 
 output$resultmap=renderPlot({
-    datapath=paste(input$resultsFile,"\\data\\result_",input$nclust,"classes",".asc", sep="")
+    datapath=paste(input$resultsFile,"/data/result_",input$nclust,"classes",".asc", sep="")
     if(file.exists(datapath)){
         myraster=raster(datapath)
         plot(myraster)

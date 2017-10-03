@@ -47,7 +47,7 @@ get_lower_clusters=function(mytree,i,immediate=FALSE){
 #' @export
 #'
 #' @examples
-get_cluster_locations=function(mytree,branches=FALSE){
+get_cluster_locations=function(mytree,leaves=FALSE){
   xclust=rep(NA,nrow(mytree$merge))
   x1=xclust
   x2=xclust
@@ -83,10 +83,10 @@ get_cluster_locations=function(mytree,branches=FALSE){
   return(locations)
 }
 
-#' Title
+#' Get indices of individuals that are part of a cluster
 #'
-#' @param mytree
-#' @param i
+#' @param mytree the hierarchical classification tree
+#' @param i the ID of the cluster
 #'
 #' @return
 #' @export
@@ -115,7 +115,7 @@ get_cluster_elem=get_elem=function(mytree,i){
 #'
 #' @examples
 plot_tree=function(mytree, ylim=c(0,1.2*max(mytree$height)),labels_ab=FALSE,nclust){
-  l=get_cluster_locations(mytree, branches=TRUE)
+  l=get_cluster_locations(mytree, leaves=TRUE)
   mytree$merge
   par(las=2)
   plot(c(1,nrow(mytree$merge)+1),ylim,

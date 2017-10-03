@@ -14,7 +14,7 @@ rTree=reactive({
           # distance is normalized by the variable's standard deviation
           # and multiplied by its weight
           Mdist_i=dataWeight[i]*(Mdist_i)/dataSd[i]
-          Mdist=Mdist+Mdist_i 
+          Mdist=Mdist+Mdist_i
           assign(paste("Mdist_",i,sep=""),Mdist_i,env=globalenv())
         }
         return(Mdist)
@@ -54,7 +54,7 @@ rDataQuantiClust=reactive({
   mydata=mydata[,which(dataType %in% c("quanti","fac"))]
   return(mydata)
 })
-  
+
 rDataCatClust=reactive({
   mydata=rDataClust()
   params=rParams()
@@ -119,7 +119,7 @@ output$inertia=renderPlot({
     }
     ratio_I[k]=(Itot-Iwit)/Itot*100
   }
-  # Produce the associated graphic 
+  # Produce the associated graphic
   plot(c(1,nclustersmax),c(0,100),
        xlab="number of clusters",
        ylab="Explained Inertia (%)",
