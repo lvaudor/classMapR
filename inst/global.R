@@ -1,6 +1,7 @@
 mywd=getwd()
 # Install and load packages--------------------------
-list_packages=c("pixmap",
+list_packages=c("shiny",
+                "pixmap",
                 "rgdal",
                 "jpeg",
                 "ade4",
@@ -18,7 +19,6 @@ for (i in 1:length(list_packages)){
   }
   require(mypackage, character.only=T)
 }
-
 
 # Create interface ---------------------------------
 myblue=rgb(200/255,200/255,255/255)
