@@ -10,4 +10,4 @@ Encoding: UTF-8
 LazyData: true
 RoxygenNote: 6.0.1
 Depends:  R (>= 3.4.2)
-Imports: shiny, stringr, pixmap, rgdal, jpeg, ade4, ff, ffbase, ggplot2, tidyr, dplyr, shinyFiles
+Imports: shiny, stringr, pixmap, rgdal, jpeg, ade4, ff, ffbase, ggplot2, tidyr, dplyr, shinyFiles, raster
