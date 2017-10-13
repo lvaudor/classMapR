@@ -19,6 +19,8 @@ rTree=reactive({
         }
         return(Mdist)
       }
+      print(mydata)
+      print(params)
       # the distance is calculated on the subsample:
       mydist=calc_dist(na.omit(mydata),params$dataType,params$dataSd,params$dataWeight)
       mydist=as.dist(mydist)

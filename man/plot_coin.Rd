@@ -2,13 +2,16 @@
 % Please edit documentation in R/factorial_analyses.R
 \name{plot_coin}
 \alias{plot_coin}
-\title{Title}
+\title{Plot coinertia analysis}
 \usage{
 plot_coin(coin)
 }
 \arguments{
 \item{coin}{}
 }
+\value{
+a plot
+}
 \description{
-Title
+Plot coinertia analysis
 }

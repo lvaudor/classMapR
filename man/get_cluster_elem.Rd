@@ -11,6 +11,13 @@ get_cluster_elem(mytree, i)
 
 \item{i}{the ID of the cluster}
 }
+\value{
+a vector of indices
+}
 \description{
 Get indices of individuals that are part of a cluster
+}
+\examples{
+hc <- hclust(dist(USArrests), "ave")
+get_cluster_elem(hc, 30)
 }

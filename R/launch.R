@@ -6,16 +6,7 @@
 #' @examples
 #' classMapR()
 
-graphiT=function(){
-  shiny::runApp(findmypath("app",""))
-}
-
-#' Find path to classMapR package
-#'
-#' This function is used internally to find package's path.
-#' @export
-
-findmypath=function(dir,file){
-  path=system.file(dir,file,package="classMapR")
-  return(path)
+classMapR=function(){
+  path=system.file(package="classMapR")
+  shiny::runApp(path)
 }

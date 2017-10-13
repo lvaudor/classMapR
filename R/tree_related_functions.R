@@ -1,5 +1,3 @@
-
-
 #' Get clusters ID or individuals' indices, of clusters or individuals comprised in a cluster
 #'
 #' @param mytree a classification tree
@@ -7,10 +5,13 @@
 #' @param immediate if TRUE, the function returns clusters at the level immediately below, if FALSE, the function returns all individuals comprised in the cluster
 #'
 #'
-#' @return
+#' @return vector of indices
 #' @export
 #'
 #' @examples
+#' hc <- hclust(dist(USArrests), "ave")
+#' get_lower_clusters(hc,15,immediate=TRUE)
+#' get_lower_clusters(hc,15,immediate=FALSE)
 get_lower_clusters=function(mytree,i,immediate=FALSE){
   result=i
   fclust=function(i){
@@ -38,15 +39,21 @@ get_lower_clusters=function(mytree,i,immediate=FALSE){
 }
 
 
-#' Title
+#' Get coordinates of a cluster (node) on tree
 #'
 #' @param mytree a classification tree
 #' @param leaves if TRUE, also returns the location of the 2 leaves
 #'
-#' @return
-#' @export
+#' @return a data frames with coordinates of nodes -(xclust,yclust)-, and, if leaves is set to TRUE, coordinates of leaves -(x1,y1), (x2,y2)-
+#'
 #'
 #' @examples
+#' hc <- hclust(dist(USArrests), "ave")
+#' loc=get_cluster_locations(hc)
+#' plot_tree(hc)
+#' points(loc$xclust[30],loc$yclust[30], col="red")
+#' locsubset=loc[get_lower_clusters(hc,30),]
+#' points(locsubset$xclust,locsubset$yclust, col="blue")
 get_cluster_locations=function(mytree,leaves=FALSE){
   xclust=rep(NA,nrow(mytree$merge))
   x1=xclust
@@ -88,11 +95,13 @@ get_cluster_locations=function(mytree,leaves=FALSE){
 #' @param mytree the hierarchical classification tree
 #' @param i the ID of the cluster
 #'
-#' @return
+#' @return a vector of indices
 #' @export
 #'
 #' @examples
-get_cluster_elem=get_elem=function(mytree,i){
+#' hc <- hclust(dist(USArrests), "ave")
+#' get_cluster_elem(hc, 30)
+get_cluster_elem=function(mytree,i){
   elem=mytree$merge
   elem1=elem[i,]
   elem1=-elem1[elem1<0]
@@ -103,17 +112,22 @@ get_cluster_elem=get_elem=function(mytree,i){
 }
 
 
-#' Title
+#' Plot classification tree
 #'
-#' @param mytree
-#' @param ylim
-#' @param labels_ab
-#' @param nclust
+#' @param mytree a hierarchical tree as returned by hclust
+#' @param ylim the y range of values on the plot
+#' @param labels_ab if TRUE label with custom names ("a","b","aa","ab", etc.)
+#' @param nclust number of clusters to consider to cut tree
 #'
-#' @return
+#' @return a plot
 #' @export
 #'
 #' @examples
+#' hc <- hclust(dist(USArrests), "ave")
+#' plot_tree(hc)
+#' plot_tree(hc,nclust=4)
+#' plot_tree(hc,labels_ab=TRUE)
+#' plot_tree(hc,labels_ab=TRUE, ylim=c(40,150))
 plot_tree=function(mytree, ylim=c(0,1.2*max(mytree$height)),labels_ab=FALSE,nclust){
   l=get_cluster_locations(mytree, leaves=TRUE)
   mytree$merge
@@ -136,17 +150,18 @@ plot_tree=function(mytree, ylim=c(0,1.2*max(mytree$height)),labels_ab=FALSE,nclu
   h=mean(mytree$height[length(mytree$height)-nclust+c(1:2)])
   abline(h=h,col="red",lty=2)
 }
-# New labels for the clusters are produced, so as to reflect the successive
-# parting of branches ("a" is divided into "aa", and "ab",
-# "aa" is divided into "aaa" and "aab", etc.)
-#' Title
+
+#' Relabel clusters with custom labels ("a","b", "aa", "ab", etc.)
 #'
-#' @param mytree
-#'
-#' @return
+#' @param mytree a classification tree
+#' @description New labels for the clusters are produced, so as to reflect the successive parting of branches ("a" is divided into "aa", and "ab", "aa" is divided into "aaa" and "aab", etc.)
+#' @return a vector with the new labels
 #' @export
 #'
 #' @examples
+#'  hc <- hclust(dist(USArrests), "ave")
+#' relabel_clusters(hc)
+
 relabel_clusters=function(mytree){
   mylabels=rep(NA,nrow(mytree$merge))
   n=nrow(mytree$merge)
@@ -163,20 +178,17 @@ relabel_clusters=function(mytree){
   return(mylabels)
 }
 
-# The function explained_inertia has as inputs
-# the descriptor's data.frame, and classification tree
-# and as output the part of inertia as a function of the
-# number of clusters.
-
-#' Title
+#' Get clusters containing a certain individual
 #'
-#' @param mytree
-#' @param i
-#'
-#' @return
+#' @param mytree a classification tree
+#' @param i the index of the individual
+#' @description The function explained_inertia has as inputs the descriptor's data.frame, and classification tree and as output the part of inertia as a function of the number of clusters.
+#' @return clusters indices
 #' @export
-#'
 #' @examples
+#' hc <- hclust(dist(USArrests), "ave")
+#' get_clusters_containing_individual(hc,4)
+
 get_clusters_containing_individual=function(mytree,i){
   cl=which(mytree$merge==-i,arr.ind=T)[1]
   clusts=cl

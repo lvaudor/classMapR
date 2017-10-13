@@ -13,6 +13,14 @@ get_lower_clusters(mytree, i, immediate = FALSE)
 
 \item{immediate}{if TRUE, the function returns clusters at the level immediately below, if FALSE, the function returns all individuals comprised in the cluster}
 }
+\value{
+vector of indices
+}
 \description{
 Get clusters ID or individuals' indices, of clusters or individuals comprised in a cluster
+}
+\examples{
+hc <- hclust(dist(USArrests), "ave")
+get_lower_clusters(hc,15,immediate=TRUE)
+get_lower_clusters(hc,15,immediate=FALSE)
 }

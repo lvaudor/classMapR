@@ -2,7 +2,7 @@
 % Please edit documentation in R/tree_related_functions.R
 \name{get_cluster_locations}
 \alias{get_cluster_locations}
-\title{Title}
+\title{Get coordinates of a cluster (node) on tree}
 \usage{
 get_cluster_locations(mytree, leaves = FALSE)
 }
@@ -11,6 +11,17 @@ get_cluster_locations(mytree, leaves = FALSE)
 
 \item{leaves}{if TRUE, also returns the location of the 2 leaves}
 }
+\value{
+a data frames with coordinates of nodes -(xclust,yclust)-, and, if leaves is set to TRUE, coordinates of leaves -(x1,y1), (x2,y2)-
+}
 \description{
-Title
+Get coordinates of a cluster (node) on tree
+}
+\examples{
+hc <- hclust(dist(USArrests), "ave")
+loc=get_cluster_locations(hc)
+plot_tree(hc)
+points(loc$xclust[30],loc$yclust[30], col="red")
+locsubset=loc[get_lower_clusters(hc,30),]
+points(locsubset$xclust,locsubset$yclust, col="blue")
 }

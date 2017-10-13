@@ -8,7 +8,13 @@ with null weight}
 dudi.acm(df, row.w = rep(1, nrow(df)), scannf = TRUE, nf = 2)
 }
 \arguments{
-\item{nf}{}
+\item{df}{a data frame}
+
+\item{row.w}{a vector with row.weights}
+
+\item{scannf}{whether or not to ask for user input about final number of factors}
+
+\item{nf}{number of factors}
 }
 \value{
 an MCA result

@@ -2,14 +2,30 @@
 % Please edit documentation in R/tree_related_functions.R
 \name{plot_tree}
 \alias{plot_tree}
-\title{Title}
+\title{Plot classification tree}
 \usage{
 plot_tree(mytree, ylim = c(0, 1.2 * max(mytree$height)), labels_ab = FALSE,
   nclust)
 }
 \arguments{
-\item{nclust}{}
+\item{mytree}{a hierarchical tree as returned by hclust}
+
+\item{ylim}{the y range of values on the plot}
+
+\item{labels_ab}{if TRUE label with custom names ("a","b","aa","ab", etc.)}
+
+\item{nclust}{number of clusters to consider to cut tree}
+}
+\value{
+a plot
 }
 \description{
-Title
+Plot classification tree
+}
+\examples{
+hc <- hclust(dist(USArrests), "ave")
+plot_tree(hc)
+plot_tree(hc,nclust=4)
+plot_tree(hc,labels_ab=TRUE)
+plot_tree(hc,labels_ab=TRUE, ylim=c(40,150))
 }

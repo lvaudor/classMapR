@@ -2,13 +2,20 @@
 % Please edit documentation in R/tree_related_functions.R
 \name{relabel_clusters}
 \alias{relabel_clusters}
-\title{Title}
+\title{Relabel clusters with custom labels ("a","b", "aa", "ab", etc.)}
 \usage{
 relabel_clusters(mytree)
 }
 \arguments{
-\item{mytree}{}
+\item{mytree}{a classification tree}
+}
+\value{
+a vector with the new labels
 }
 \description{
-Title
+New labels for the clusters are produced, so as to reflect the successive parting of branches ("a" is divided into "aa", and "ab", "aa" is divided into "aaa" and "aab", etc.)
+}
+\examples{
+ hc <- hclust(dist(USArrests), "ave")
+relabel_clusters(hc)
 }

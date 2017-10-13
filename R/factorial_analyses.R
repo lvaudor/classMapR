@@ -26,10 +26,10 @@ MCA=function(mydatacat){
 
 #' This is a slightly modified version of the dudi.acm function, that deals with columns
 #' with null weight
-#' @param df
-#' @param row.w
-#' @param scannf
-#' @param nf
+#' @param df a data frame
+#' @param row.w a vector with row.weights
+#' @param scannf whether or not to ask for user input about final number of factors
+#' @param nf number of factors
 #'
 #' @return an MCA result
 #'
@@ -74,12 +74,11 @@ dudi.acm=function (df, row.w = rep(1, nrow(df)), scannf = TRUE, nf = 2) {
   return(X)
 }
 
-#### Graphical auxiliary functions ###########################################
-#' Title
+#' Plot coinertia analysis
 #'
 #' @param coin
 #'
-#' @return
+#' @return a plot
 #' @export
 #'
 #' @examples

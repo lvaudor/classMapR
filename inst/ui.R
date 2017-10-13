@@ -3,7 +3,7 @@
 # run the application by clicking 'Run App' above.
 #
 # Find out more about building applications with Shiny here:
-# 
+#
 #    http://shiny.rstudio.com/
 #
 
@@ -12,8 +12,12 @@ library(shiny)
 # Define UI for application that draws a histogram
 shinyUI(fluidPage(
   # Application title
-  img(src="ClassMapR_logo.png", height=75),
-  tabsetPanel(
+  fluidRow(column(width=4,
+                  img(src="ClassMapR_logo.png", height=75)),
+           column(width=8,
+                  h5("How-to-cite"),
+                  HTML("<p> Vaudor L. (2017) <i>classMapR 2.0: an R-shiny application for the unsupervised hierarchical clustering of pixels in multilayered rasters.</i></p>"))),
+    tabsetPanel(
     tabPanel("Calculation",br(),
                  fluidRow(
                    column(width=4,
@@ -82,7 +86,7 @@ shinyUI(fluidPage(
                                 plotOutput("imCoin"))
                        )#tabsetPanel
                        ),#tabPanel
-          
+
               tabPanel("Classification",
                        sliderInput("nclust_exp",
                                    "number of classes",

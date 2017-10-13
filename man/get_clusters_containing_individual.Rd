@@ -2,13 +2,22 @@
 % Please edit documentation in R/tree_related_functions.R
 \name{get_clusters_containing_individual}
 \alias{get_clusters_containing_individual}
-\title{Title}
+\title{Get clusters containing a certain individual}
 \usage{
 get_clusters_containing_individual(mytree, i)
 }
 \arguments{
-\item{i}{}
+\item{mytree}{a classification tree}
+
+\item{i}{the index of the individual}
+}
+\value{
+clusters indices
 }
 \description{
-Title
+The function explained_inertia has as inputs the descriptor's data.frame, and classification tree and as output the part of inertia as a function of the number of clusters.
+}
+\examples{
+hc <- hclust(dist(USArrests), "ave")
+get_clusters_containing_individual(hc,4)
 }

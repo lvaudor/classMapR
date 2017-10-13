@@ -9,7 +9,8 @@ list_packages=c("pixmap",
                 "ggplot2",
                 "tidyr",
                 "dplyr",
-                "shinyFiles")
+                "shinyFiles",
+                "stringr")
 for (i in 1:length(list_packages)){
   mypackage=list_packages[i]
   if(length(find.package(mypackage, quiet=TRUE))==0){
