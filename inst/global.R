@@ -14,9 +14,9 @@ list_packages=c("shiny",
                 "stringr")
 for (i in 1:length(list_packages)){
   mypackage=list_packages[i]
-  if(length(find.package(mypackage, quiet=TRUE))==0){
-    install.packages(mypackage)
-  }
+  # if(length(find.package(mypackage, quiet=TRUE))==0){
+  #   install.packages(mypackage)
+  # }
   require(mypackage, character.only=T)
 }
 
