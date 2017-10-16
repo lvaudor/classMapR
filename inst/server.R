@@ -114,17 +114,17 @@ shinyServer(function(input,output,session) {
     return(result)
   })
 
-  observeEvent(input$dir,{
+
+  rFilesRead=reactive({
     mydir=paste0(c(path.expand('~'),input$dir$path[2:length(input$dir$path)]), collapse="/")
     myfiles=list.files(mydir)
     myfiles=myfiles[str_detect(myfiles,"\\.asc$")]
     myvars=str_match(myfiles,"(.*)(\\.asc$)")[,2]
     myfiles=data.frame(path=str_c(mydir,"/",myfiles),
-                       var=myvars)
-    write.table(myfiles,"files.csv",sep=";", row.names=FALSE,col.names=FALSE)
+                       var=myvars,
+                       stringsAsFactors=FALSE)
   })
 
-  rFilesRead=reactiveFileReader(1000,session,"files.csv","read.csv", sep=";", stringsAsFactors=FALSE, header=FALSE)
   rFiles=reactive({rFilesRead()[,1]})
   rVars=reactive({rFilesRead()[,2]})
 
