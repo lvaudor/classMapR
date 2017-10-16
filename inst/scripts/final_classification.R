@@ -1,6 +1,6 @@
 rTree=reactive({
       mydata=rData()
-      params=rParams()
+      params=fParams(datadir())
       ## Function calc_dist has as inputs:
       # a data.frame, as well as the specification variable's type (quantitative or categorical),
       # and the specification of variable's type, standard deviation, and weight
@@ -19,8 +19,6 @@ rTree=reactive({
         }
         return(Mdist)
       }
-      print(mydata)
-      print(params)
       # the distance is calculated on the subsample:
       mydist=calc_dist(na.omit(mydata),params$dataType,params$dataSd,params$dataWeight)
       mydist=as.dist(mydist)

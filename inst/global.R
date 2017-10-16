@@ -11,13 +11,10 @@ list_packages=c("shiny",
                 "tidyr",
                 "dplyr",
                 "shinyFiles",
-                "stringr")
+                "stringr",
+                "raster")
 for (i in 1:length(list_packages)){
-  mypackage=list_packages[i]
-  # if(length(find.package(mypackage, quiet=TRUE))==0){
-  #   install.packages(mypackage)
-  # }
-  require(mypackage, character.only=T)
+  require(list_packages[i], character.only=T)
 }
 
 # Create interface ---------------------------------

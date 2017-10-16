@@ -8,7 +8,6 @@
 #
 # Define server logic required to draw a histogram
 shinyServer(function(input,output,session) {
-  print(getwd())
   source("scripts/data_description.R",local=TRUE)
   source("scripts/final_classification.R",local=TRUE)
   shinyDirChoose(input, 'dir', roots = c(home = path.expand('~')), filetypes = c('', 'txt'))
@@ -35,42 +34,85 @@ shinyServer(function(input,output,session) {
                    "/",
                    input$resultsFile,
                    "/data/")
-    return(dirname)})
+    return(dirname)}
+  )
 
-  output$filesUI=renderUI({
+  makeUI=function(myvars,index){
+      listItems=vector(length=length(myvars)*2,mode="list")
+      for (i in 1:length(myvars)){
+        if(!(myvars[i] %in% c("x","y"))){
+          typeWidget=radioButtons(paste0("varType",index[i]),
+                                  "descriptor type",
+                                  c("cat","quanti"),
+                                  selected="quanti",
+                                  inline=TRUE)
+          defaultWeight=1
+        }else{
+          typeWidget=p("geographical positioning")
+          defaultWeight=0
+        }
+        listItems[[i]]=fluidRow(column(width=3,
+                                       h4(myvars[i])),
+                                column(width=4,
+                                       typeWidget),
+                                column(width=4,
+                                       sliderInput(paste0("varWeight",index[i]),
+                                                   "weight",
+                                                   value=defaultWeight,
+                                                   min=0,
+                                                   max=20),
+                                column(width=1))
+        )#fluidRow
+      }
+  return(listItems)
+  }
+
+  output$filesUI1=renderUI({
     input$dir
     myvars=c("x","y",rVars())
-    result=NULL
-    if(length(myvars)>=3){
-        listItems=vector(length=length(myvars)*2,mode="list")
-        for (i in 1:length(myvars)){
-          if(!(myvars[i] %in% c("x","y"))){
-            typeWidget=radioButtons(paste0("varType",i),
-                                    "descriptor type",
-                                    c("cat","quanti"),
-                                    selected="quanti",
-                                    inline=TRUE)
-            defaultWeight=1
-          }else{
-           typeWidget=p("geographical positioning")
-           defaultWeight=0
-          }
-          listItems[[i]]=fluidRow(column(width=4,h4(myvars[i])),
-                                  column(width=4,typeWidget),
-                                  column(width=4,
-                                         sliderInput(paste0("varWeight",i),
-                                                      "weight",
-                                                      value=defaultWeight,
-                                                      min=0,
-                                                      max=20))
-                                   )#fluidRow
-        }
-        result=do.call("wellPanel",listItems)
-    }
+    nvars=floor(length(myvars)/2)
+    result=makeUI(myvars[1:nvars],1:nvars)
+    return(result)
   })
 
+  output$filesUI2=renderUI({
+    input$dir
+    myvars=c("x","y",rVars())
+    nvars=floor(length(myvars)/2)
+    result=makeUI(myvars[(nvars+1):length(myvars)],(nvars+1):length(myvars))
+    return(result)
+  })
 
-  rParams=reactive({read.csv(str_c(datadir(),"params.csv"),sep=";", stringsAsFactors=FALSE)})
+  fParams=function(dir){
+    paramsfile=str_c(dir,"params.csv")
+    if(!file.exists(paramsfile)){
+      params=data.frame(myvars=c("x","y"),
+                        dataType=c("pos","pos"),
+                        dataWeight=c("1","1"),
+                        nrow=c(NA,NA),
+                        ncol=c(NA,NA),
+                        rootpath=rep(path.expand("~"),2),
+                        resultpath=c(NA,NA),
+                        dataSd=c(NA,NA)
+      )
+    }
+    if(file.exists(paramsfile)){
+      params=read.csv(paramsfile,sep=";", stringsAsFactors=FALSE)
+    }
+    return(params)
+  }
+  rParams=reactive({
+    input$doStep1
+    paramspath=str_c(datadir(),"params.csv")
+    result=NULL
+    if(file.exists(paramspath)){
+    result=read.csv(paramspath,
+                    sep=";",
+                    stringsAsFactors=FALSE
+                    )
+    }
+    return(result)
+  })
 
   observeEvent(input$dir,{
     mydir=paste0(c(path.expand('~'),input$dir$path[2:length(input$dir$path)]), collapse="/")
@@ -87,7 +129,7 @@ shinyServer(function(input,output,session) {
   rVars=reactive({rFilesRead()[,2]})
 
 
-  observeEvent(input$readFiles,{
+  observeEvent(input$doStep1,{
     resultsFile=dirname(datadir())
     myfiles=rFiles()
     myvars=rVars()
@@ -101,8 +143,8 @@ shinyServer(function(input,output,session) {
     myncol=ncol(myraster)
     file1=dirname(datadir())
     file2=datadir()
-    if(!file.exists(file1)){dir.create(file1)}
-    if(!file.exists(file2)){dir.create(file2)}
+    if(!dir.exists(file1)){dir.create(file1)}
+    if(!dir.exists(file2)){dir.create(file2)}
     ### Create params.csv
     rootPath=paste0(input$dir$path[2:length(input$dir$path)], collapse="/")
     params=data.frame(myvars,
@@ -116,7 +158,7 @@ shinyServer(function(input,output,session) {
                       dataSd=rep(NA,length(myvars)),
                       stringsAsFactors=FALSE)
     write.table(params,
-                "../data/params.csv",
+                str_c(datadir(),"params.csv"),
                 row.names=FALSE,sep=";")
     ################################
     cat_levels_file=str_c(datadir(),"cat_levels.asc")
@@ -177,39 +219,41 @@ shinyServer(function(input,output,session) {
                 str_c(datadir(),"mydataquanti.csv"),
                 sep=";",
                 row.names=F)
+    print("Step1 done")
   })
 
   rAlldata=reactive({
-    params=rParams()
+    params=fParams(datadir())
     result=fAlldata(params)
     return(result)
   })
 
 output$numMap=renderUI({
-  params=rParams()
+  params=fParams(datadir())
   radioButtons("numMap","variable",params$myvars[3:nrow(params)])
 })
 
 output$map=renderPlot({
-    params=rParams()
+    params=fParams(datadir())
     datapath=params$path[which(params$myvars==input$numMap)]
     myraster=raster(datapath)
     plot(myraster)
   })
 
 
-observeEvent(input$calculate_distances,{
+observeEvent(input$doStep2,{
+  params=fParams(datadir())
   data2=rData()
-  alldata=rAlldata()
+  alldata=fAlldata(params)
   data1=alldata$alldata[alldata$completerow[]==1,]
-  params=rParams()
   mydist=dist_between_datasets(data1,data2, params$dataWeight,params$dataSd)
   write.csv.ffdf(as.ffdf(mydist),
                  str_c(datadir(),"dist.csv"),
                  append=FALSE)
   mytree=rTree()
   # Mclust is a matrix with n lines (individuals in the subsample data2)
-  # and as many columns as there are merges in the classification tree
+  # and as many columns as there are nodes in the classification tree
+  # M[i,j]=1 if the j-th node contains the i-th individual
   Mclust=matrix(rep(0,nrow(data2)*nrow(mytree$merge)),nrow=nrow(data2))
   for (i in 1:nrow(data2)){
     clusts=get_clusters_containing_individual(mytree,i)
@@ -219,9 +263,11 @@ observeEvent(input$calculate_distances,{
               str_c(datadir(),"Mclust.csv"),
               row.names=FALSE,
               sep=";")
+  print("Step2 is done")
 })
 
-observeEvent(input$extrapolate_to_nclust,{
+observeEvent(input$doStep3,{
+  params=fParams(datadir())
   nclust=input$nclust
   # In this script we use the results of the extrapolation to n cluster
   # where n is the total number of individuals in the subsample
@@ -239,9 +285,9 @@ observeEvent(input$extrapolate_to_nclust,{
     }
     clusters=sort(clusters)
   }
-  mynrow=rParams()$nrow[3]
-  myncol=rParams()$ncol[3]
-  dataType=rParams()$dataType
+  mynrow=params$nrow[3]
+  myncol=params$ncol[3]
+  dataType=params$dataType
   #allclust=ff(-9999,vmode="integer",dim=c(mynrow*myncol,1))
   dataclust=Mclust[,clusters]%*%matrix(nclust:1,nrow=nclust)
   dist=read.csv.ffdf(file=str_c(datadir(),"dist.csv"))
@@ -257,7 +303,7 @@ observeEvent(input$extrapolate_to_nclust,{
                        RETCOL=1)
 
   result=ff(NA,vmode="integer",length=mynrow*myncol)
-  completerow=rAlldata()$completerow
+  completerow=fAlldata(params)$completerow
   ### Create data tables
   ind_completerow<<-which(completerow[]==1)
   ####
@@ -269,7 +315,7 @@ observeEvent(input$extrapolate_to_nclust,{
                             nclust,
                             "classes.asc")
   if(file.exists(result_classif_file)){file.remove(result_classif_file)}
-  myraster=raster(rParams()$path[3], band=1)
+  myraster=raster(fParams(datadir())$path[3], band=1)
   # myseq=seq(1,mynrow*myncol+1, by=myncol)
   # for(i in 2:length(myseq)){
   #   myraster[myseq[i-1]:(myseq[i]-1)]=result[myseq[i-1]:(myseq[i]-1)]
@@ -277,9 +323,11 @@ observeEvent(input$extrapolate_to_nclust,{
   # }
   myraster[]=result[]
   writeRaster(myraster,filename=result_classif_file,format="ascii",overwrite=TRUE)
+  print("Step3 is done")
 })
 
 output$resultmap=renderPlot({
+    input$doStep3
     datapath=str_c(datadir(),
                    "result_",
                    input$nclust,
@@ -293,9 +341,25 @@ output$resultmap=renderPlot({
 
 
 output$params=renderTable({rParams()})
-output$dataDirectory=renderText({truc=rParams()$rootPath[3]})
+output$rawdataDirectory=renderText({
+  rawdataDirectory=paste0(c(path.expand('~'),input$dir$path[2:length(input$dir$path)]), collapse="/")
+})
 output$resultDirectory=renderText({datadir()})
-output$n=renderText({input$nInd})
+output$sampleSize=renderText({str_c("The sample size is ", input$nInd)})
 output$showParams=renderTable({rParams()[c("myvars","dataType","dataWeight")]})
+output$listMaps=renderUI({
+  input$nclust
+  files=list.files(datadir())
+  files=str_subset(files,"result_\\d+classes\\.asc")
+  result=c()
+  for (i in 1:length(files)){
+    result=str_c(result,
+                 "<li>",
+                 files[i],
+                 "</li>")
+  }
+  HTML(result)
+})
+
 })
 

@@ -1,4 +1,4 @@
-#### For each pixel in the data, 
+#### For each pixel in the data,
 #### find which individual of the sub-sample (ID between 1 and n) is closest
 dist_between_datasets=function(data1,data2,dataWeight,dataSd){
 n=nrow(data2)
@@ -47,7 +47,7 @@ for (j in 1:n){
     dist=ffbase:::as.ff_matrix.ffdf(dist)
   }
   # f2 takes dist (defined above) as input
-  # and replaces the value in the first and second column 
+  # and replaces the value in the first and second column
   # in case the distance to j-th individual is lower than
   # the lowest distance observed so far (on individuals 1-(j-1))
   f2=function(dist){
@@ -66,7 +66,7 @@ for (j in 1:n){
                   RETCOL=3)
 }
 return(dist)
-} 
+}
 
 
 
